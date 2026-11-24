@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Go Navigator">
+  <title>Go Navigator</title>
+
+  <!-- 圆形徽标底色 -->
+  <circle cx="256" cy="256" r="210" fill="#05A9D0"/>
+
+  <!-- 左侧接口标识 I -->
+  <g fill="none" stroke="#10303E" stroke-width="10" stroke-linecap="round">
+    <path d="M60 222 H106"/>
+    <path d="M83 222 V298"/>
+    <path d="M60 298 H106"/>
+  </g>
+
+  <!-- 右侧接口标识 {} -->
+  <g fill="none" stroke="#10303E" stroke-width="7.5" stroke-linecap="round">
+    <path d="M408 220 C397 220 393 227 393 238 L393 246 C393 253 389 256 382 256 C389 256 393 259 393 266 L393 274 C393 285 397 292 408 292"/>
+    <path d="M428 220 C439 220 443 227 443 238 L443 246 C443 253 447 256 454 256 C447 256 443 259 443 266 L443 274 C443 285 439 292 428 292"/>
+  </g>
+
+  <!-- 循环箭头环 -->
+  <g>
+    <g fill="#10303E" stroke="#10303E">
+      <path d="M112.28 197.94 A155 155 0 0 1 371.18 152.29" fill="none" stroke-width="44"/>
+      <path d="M338.0 176.8 L411.3 196.9 L399.0 121.9 Z" stroke-width="15" stroke-linejoin="round"/>
+    </g>
+    <g fill="#FFFFFF" stroke="#FFFFFF">
+      <path d="M112.28 197.94 A155 155 0 0 1 371.18 152.29" fill="none" stroke-width="29"/>
+      <path d="M338.0 176.8 L411.3 196.9 L399.0 121.9 Z" stroke-width="2" stroke-linejoin="round"/>
+    </g>
+    <g transform="rotate(180 256 256)">
+      <g fill="#10303E" stroke="#10303E">
+        <path d="M112.28 197.94 A155 155 0 0 1 371.18 152.29" fill="none" stroke-width="44"/>
+        <path d="M338.0 176.8 L411.3 196.9 L399.0 121.9 Z" stroke-width="15" stroke-linejoin="round"/>
+      </g>
+      <g fill="#FFFFFF" stroke="#FFFFFF">
+        <path d="M112.28 197.94 A155 155 0 0 1 371.18 152.29" fill="none" stroke-width="29"/>
+        <path d="M338.0 176.8 L411.3 196.9 L399.0 121.9 Z" stroke-width="2" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- 地鼠 -->
+  <g>
+    <!-- 头部 -->
+    <path d="M256 166 C292 166 316 176 328 200 C340 224 346 244 346 264 C346 288 342 308 328 320 C314 332 292 334 256 334 C220 334 198 332 184 320 C170 308 166 288 166 264 C166 244 172 224 184 200 C196 176 220 166 256 166 Z"
+          fill="#4FCCDF" stroke="#10303E" stroke-width="5"/>
+    <!-- 耳朵 -->
+    <circle cx="178" cy="192" r="20" fill="#4FCCDF" stroke="#10303E" stroke-width="5"/>
+    <circle cx="334" cy="192" r="20" fill="#4FCCDF" stroke="#10303E" stroke-width="5"/>
+    <circle cx="188" cy="200" r="6.5" fill="#10303E"/>
+    <circle cx="324" cy="200" r="6.5" fill="#10303E"/>
+    <!-- 眼睛 -->
+    <circle cx="218" cy="222" r="24" fill="#FFFFFF" stroke="#10303E" stroke-width="5"/>
+    <circle cx="294" cy="222" r="24" fill="#FFFFFF" stroke="#10303E" stroke-width="5"/>
+    <circle cx="218" cy="224" r="11" fill="#10303E"/>
+    <circle cx="294" cy="224" r="11" fill="#10303E"/>
+    <!-- 口鼻 -->
+    <ellipse cx="256" cy="262" rx="23" ry="11" fill="#D8AE8A" stroke="#10303E" stroke-width="4.5"/>
+    <path d="M256 240 C264 240 271 245 271 250 C271 256 264 259 256 259 C248 259 241 256 241 250 C241 245 248 240 256 240 Z" fill="#10303E"/>
+    <rect x="243" y="264" width="13" height="18" rx="4" fill="#FFFFFF" stroke="#10303E" stroke-width="4.5"/>
+    <rect x="257" y="264" width="13" height="18" rx="4" fill="#FFFFFF" stroke="#10303E" stroke-width="4.5"/>
+  </g>
+</svg>

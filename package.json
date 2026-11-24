@@ -1,0 +1,123 @@
+{
+  "name": "go-navigator",
+  "displayName": "Go Navigator",
+  "description": "GoLand 风格的 Go 代码导航：接口定义跳转、接口实现查找、方法定义跳转（内置 Go 语法解析与索引）",
+  "version": "1.0.0",
+  "publisher": "eof",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "go",
+    "golang",
+    "navigation",
+    "interface",
+    "implementation"
+  ],
+  "activationEvents": [
+    "onLanguage:go",
+    "workspaceContains:**/go.mod"
+  ],
+  "main": "./out/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "1.80.0",
+    "typescript": "^5.4.5"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "go",
+        "aliases": [
+          "Go",
+          "go"
+        ],
+        "extensions": [
+          ".go"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "goNavigator.goToDefinition",
+        "title": "转到定义",
+        "category": "Go Navigator"
+      },
+      {
+        "command": "goNavigator.findAllImplementations",
+        "title": "查找所有实现",
+        "category": "Go Navigator"
+      },
+      {
+        "command": "goNavigator.showImplementations",
+        "title": "查看实现列表",
+        "category": "Go Navigator"
+      },
+      {
+        "command": "goNavigator.showInterfaces",
+        "title": "查看实现的接口",
+        "category": "Go Navigator"
+      },
+      {
+        "command": "goNavigator.reindex",
+        "title": "重建 Go 索引",
+        "category": "Go Navigator"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "goNavigator.goToDefinition",
+          "when": "editorLangId == go",
+          "group": "navigation@1"
+        },
+        {
+          "command": "goNavigator.findAllImplementations",
+          "when": "editorLangId == go",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Go Navigator",
+      "properties": {
+        "goNavigator.enableCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "在接口/结构体/方法上方显示实现个数与跳转按钮（GoLand 风格）。"
+        },
+        "goNavigator.indexVendor": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否把 vendor 目录中的 Go 源码纳入索引。"
+        },
+        "goNavigator.maxFileSizeKB": {
+          "type": "number",
+          "default": 2048,
+          "description": "单个 Go 文件的最大索引体积（KB），超过则跳过，避免超大生成文件拖慢索引。"
+        },
+        "goNavigator.exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/node_modules/**",
+            "**/.git/**"
+          ],
+          "description": "索引时额外排除的 glob 规则。"
+        }
+      }
+    }
+  }
+}
