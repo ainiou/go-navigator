@@ -2,9 +2,13 @@
   "name": "gopher-nav",
   "displayName": "Gopher Nav",
   "description": "GoLand 风格的 Go 代码导航：接口定义跳转、接口实现查找、方法定义跳转（内置 Go 语法解析与索引）",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "eof",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ainiou/go-navigator.git"
+  },
   "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.80.0"

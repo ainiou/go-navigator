@@ -9,6 +9,12 @@ VS Code 扩展，提供与 GoLand 对等的 Go 代码导航体验。内置 Go �
 
 兼容 VS Code **1.80+**，适用于 `go module` 管理的标准 Go 项目。
 
+## 使用演示
+
+![Gopher Nav 使用演示](images/gopher-nav-usage.gif)
+
+点击接口上方的 `↓ N 个实现` 展开实现列表；跳到结构体后可反向查看它实现了哪些接口，再点击回到接口定义。
+
 ---
 
 ## 1. 项目结构

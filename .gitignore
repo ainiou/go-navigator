@@ -2,3 +2,6 @@ node_modules/
 out/
 *.vsix
 .DS_Store
+video/
+*.mp4
+blog/
