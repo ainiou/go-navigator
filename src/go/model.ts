@@ -72,8 +72,10 @@ export interface LocalVar {
   names: string[];
   /** 显式声明的类型文本，例如 "*Server"、"pkg.Repo"。 */
   typeText?: string;
-  /** 由构造函数推断时的调用路径，例如 "NewServer"、"pkg.NewServer"。 */
+  /** 由构造函数推断时的调用路径，例如 "NewServer"、"pkg.NewServer"、"s.repo.Get"。 */
   ctorText?: string;
+  /** ctorText 指向多返回值函数/方法时，本变量对应第几个返回值（0 起）。 */
+  ctorIndex?: number;
 }
 
 export interface CallSite {

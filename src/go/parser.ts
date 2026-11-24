@@ -257,6 +257,14 @@ class Parser {
       }
 
       if (tok.kind === 'ident') {
+        // 非具名的包限定类型：pkg.Type（不能按「名字列表 + 类型」解析）
+        if (this.tokens[j + 1]?.text === '.') {
+          const qualified = this.readTypeExpr(j);
+          names.push('');
+          types.push(qualified.text);
+          j = qualified.end;
+          continue;
+        }
         const candidates = [tok.text];
         let k = j + 1;
         while (this.tokens[k]?.text === ',' && this.tokens[k + 1]?.kind === 'ident') {
@@ -794,17 +802,18 @@ class Parser {
 
     if (this.isTypeStart(this.tokens[j]) && this.tokens[j].text !== '{') {
       const typeExpr = this.readTypeExpr(j);
-      if (typeExpr.text && names.length === 1 && names[0] !== '_') {
-        locals.push({ names, typeText: typeExpr.text });
+      if (typeExpr.text) {
+        for (const name of names) {
+          if (name !== '_') {
+            locals.push({ names: [name], typeText: typeExpr.text });
+          }
+        }
       }
       return typeExpr.end;
     }
 
     if (this.tokens[j]?.text === '=') {
-      const inferred = this.inferRhs(j + 1);
-      if (inferred && names.length === 1 && names[0] !== '_') {
-        locals.push({ names, ...inferred });
-      }
+      this.recordLocalsFromRhs(names, j + 1, locals);
       return j + 1;
     }
 
@@ -821,11 +830,97 @@ class Parser {
     if (this.tokens[j]?.text !== ':=') {
       return undefined;
     }
-    const inferred = this.inferRhs(j + 1);
-    if (inferred && names.length === 1 && names[0] !== '_') {
-      locals.push({ names, ...inferred });
-    }
+    this.recordLocalsFromRhs(names, j + 1, locals);
     return j + 1;
+  }
+
+  /**
+   * 根据赋值右侧记录局部变量。支持：
+   * - 单表达式：a := f() / a := T{} / a := pkg.NewX()
+   * - 多值单调用：a, b := f()（a/b 分别对应 f 的第 0/1 个返回值）
+   * - 一一对应多调用：a, b := f(), g()
+   * 其他形式（a, b := 1, 2 / v, ok := m[k] / v, ok := x.(T)）保持原样，不记录。
+   */
+  private recordLocalsFromRhs(names: string[], rhsStart: number, locals: LocalVar[]): void {
+    if (names.length === 0) {
+      return;
+    }
+    const parts = this.splitRhs(rhsStart);
+    if (parts.length === 1) {
+      const inferred = this.inferRhs(parts[0]);
+      if (!inferred) {
+        return;
+      }
+      if (inferred.typeText) {
+        if (names.length === 1 && names[0] !== '_') {
+          locals.push({ names: [names[0]], typeText: inferred.typeText });
+        }
+        return;
+      }
+      if (inferred.ctorText) {
+        names.forEach((name, index) => {
+          if (name === '_') {
+            return;
+          }
+          const entry: LocalVar = { names: [name], ctorText: inferred.ctorText };
+          if (names.length > 1) {
+            entry.ctorIndex = index;
+          }
+          locals.push(entry);
+        });
+      }
+      return;
+    }
+
+    if (parts.length !== names.length) {
+      return;
+    }
+    const inferredList = parts.map(part => this.inferRhs(part));
+    if (!inferredList.every(item => item?.ctorText)) {
+      return;
+    }
+    names.forEach((name, index) => {
+      if (name === '_') {
+        return;
+      }
+      locals.push({ names: [name], ctorText: inferredList[index]!.ctorText });
+    });
+  }
+
+  /** 返回 RHS 中顶层逗号分隔的各个表达式的起始 token 下标。 */
+  private splitRhs(start: number): number[] {
+    const parts = [start];
+    let depth = 0;
+    let j = start;
+    while (j < this.tokens.length) {
+      const t = this.tokens[j];
+      if (j > start && depth === 0 && t.nl) {
+        break;
+      }
+      if (t.text === '(' || t.text === '[' || t.text === '{') {
+        depth++;
+        j++;
+        continue;
+      }
+      if (t.text === ')' || t.text === ']' || t.text === '}') {
+        if (depth === 0) {
+          break;
+        }
+        depth--;
+        j++;
+        continue;
+      }
+      if (depth === 0 && (t.text === ';' || t.text === ':=' || t.text === '=')) {
+        break;
+      }
+      if (depth === 0 && t.text === ',') {
+        parts.push(j + 1);
+        j++;
+        continue;
+      }
+      j++;
+    }
+    return parts;
   }
 
   private inferRhs(i: number): { typeText?: string; ctorText?: string } | undefined {
@@ -835,19 +930,17 @@ class Parser {
     }
 
     if (this.tokens[j]?.kind === 'ident') {
-      let qualifier: string | undefined;
-      let base = this.tokens[j].text;
+      const segments = [this.tokens[j].text];
       let k = j + 1;
-      if (this.tokens[k]?.text === '.' && this.tokens[k + 1]?.kind === 'ident') {
-        qualifier = base;
-        base = this.tokens[k + 1].text;
+      while (this.tokens[k]?.text === '.' && this.tokens[k + 1]?.kind === 'ident') {
+        segments.push(this.tokens[k + 1].text);
         k += 2;
       }
       let afterTypeArgs = k;
       if (this.tokens[k]?.text === '[') {
         afterTypeArgs = this.findMatching(k) + 1;
       }
-      const qualified = qualifier ? qualifier + '.' + base : base;
+      const qualified = segments.join('.');
       if (this.tokens[afterTypeArgs]?.text === '{') {
         return { typeText: qualified };
       }

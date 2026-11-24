@@ -1,5 +1,5 @@
 import {
-  CallSite, FuncDecl, GoFileIndex, Implementer, MethodSignature, ModuleInfo,
+  CallSite, FuncDecl, GoFileIndex, Implementer, LocalVar, MethodSignature, ModuleInfo,
   ResolvedType, SourceLocation, Token, TypeDecl, TypeRef
 } from './model';
 import { tokenize } from './lexer';
@@ -939,57 +939,88 @@ export class GoIndex {
     if (chain.length === 0) {
       return undefined;
     }
+    return this.resolveChainType(file, call.locals, chain, 0);
+  }
+
+  /**
+   * 解析表达式链的类型：
+   * - 首段是 import 别名 → 包级函数，取 signature.resultTypes[resultIndex]；
+   * - 首段是局部变量 → 按 typeText 或 ctorText/ctorIndex 递归解析；
+   * - 后续段优先按结构体字段，其次按方法（含接口方法），取 resultTypes[resultIndex]。
+   */
+  private resolveChainType(
+    file: GoFileIndex,
+    locals: LocalVar[],
+    chain: string[],
+    resultIndex: number,
+    depth = 0
+  ): ResolvedType | undefined {
+    if (chain.length === 0 || depth > 8) {
+      return undefined;
+    }
+
     const first = chain[0];
-    const local = call.locals.find(item => item.names.includes(first));
-    let current: ResolvedType | undefined;
-    if (local) {
-      if (local.typeText) {
-        current = this.resolveTypeText(file, local.typeText);
-      } else if (local.ctorText) {
-        current = this.resolveConstructorResult(file, local.ctorText);
+    if (this.isImportAlias(file, first)) {
+      if (chain.length !== 2) {
+        return undefined;
       }
+      const dir = this.aliasToDir(file, first);
+      if (!dir) {
+        return undefined;
+      }
+      const candidates = this.findFuncsInDir(dir, chain[1]);
+      if (candidates.length === 0) {
+        return undefined;
+      }
+      const resultType = candidates[0].decl.signature.resultTypes[resultIndex];
+      return resultType ? this.resolveTypeText(candidates[0].file, resultType) : undefined;
+    }
+
+    const local = locals.find(item => item.names.includes(first));
+    if (!local) {
+      return undefined;
+    }
+
+    let current: ResolvedType | undefined;
+    if (local.typeText) {
+      current = this.resolveTypeText(file, local.typeText);
+    } else if (local.ctorText) {
+      current = this.resolveChainType(
+        file,
+        locals,
+        local.ctorText.split('.'),
+        local.ctorIndex ?? 0,
+        depth + 1
+      );
     }
     if (!current) {
       return undefined;
     }
+
     for (let i = 1; i < chain.length; i++) {
+      const target = this.followAlias(current);
       const segment = chain[i];
-      if (current.decl.kind === 'interface') {
+      const field = (target.decl.structFields ?? []).find(item => item.names.includes(segment));
+      if (field) {
+        const next = this.resolveTypeText(target.file, field.typeText);
+        if (!next) {
+          return undefined;
+        }
+        current = next;
+        continue;
+      }
+      const entry = this.methodSetOf(target.file, target.decl).get(segment);
+      if (!entry) {
         return undefined;
       }
-      const field = (current.decl.structFields ?? []).find(item => item.names.includes(segment));
-      if (!field) {
+      const resultType = entry.signature.resultTypes[resultIndex];
+      const next = resultType ? this.resolveTypeText(entry.file, resultType) : undefined;
+      if (!next) {
         return undefined;
       }
-      current = this.resolveTypeText(current.file, field.typeText);
-      if (!current) {
-        return undefined;
-      }
+      current = next;
     }
     return current;
-  }
-
-  private resolveConstructorResult(file: GoFileIndex, ctorText: string): ResolvedType | undefined {
-    const parts = ctorText.split('.');
-    const name = parts[parts.length - 1];
-    let dir: string | undefined;
-    if (parts.length === 2) {
-      dir = this.aliasToDir(file, parts[0]);
-      if (!dir) {
-        return undefined;
-      }
-    } else {
-      dir = this.dirKey(file.dir);
-    }
-    const candidates = this.findFuncsInDir(dir, name);
-    if (candidates.length === 0) {
-      return undefined;
-    }
-    const resultType = candidates[0].decl.signature.resultTypes[0];
-    if (!resultType) {
-      return undefined;
-    }
-    return this.resolveTypeText(candidates[0].file, resultType);
   }
 
   // ------------------------------------------------------------------ 实现列表
