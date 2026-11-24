@@ -42,7 +42,7 @@ async function showSymbolNavigation(
 ): Promise<void> {
   const file = resolveFile(service, filePath);
   if (!file) {
-    vscode.window.showInformationMessage('Go Navigator: 文件尚未完成索引，请稍后重试或执行「重建 Go 索引」。');
+    vscode.window.showInformationMessage('Gopher Nav: 文件尚未完成索引，请稍后重试或执行「重建 Go 索引」。');
     return;
   }
   const result = service.index.findImplementationsAt(file, offset);
@@ -114,7 +114,7 @@ export function registerCommands(context: vscode.ExtensionContext, service: GoIn
     vscode.commands.registerCommand('goNavigator.findAllImplementations', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor || editor.document.languageId !== 'go') {
-        vscode.window.showInformationMessage('Go Navigator: 请在 Go 代码中将光标放在接口或方法上再使用该命令。');
+        vscode.window.showInformationMessage('Gopher Nav: 请在 Go 代码中将光标放在接口或方法上再使用该命令。');
         return;
       }
       await service.whenReady();

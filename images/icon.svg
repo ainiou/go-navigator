@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Go Navigator">
-  <title>Go Navigator</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Gopher Nav">
+  <title>Gopher Nav</title>
 
   <!-- 圆形徽标底色 -->
   <circle cx="256" cy="256" r="210" fill="#05A9D0"/>

@@ -1,4 +1,4 @@
-# Go Navigator
+# Gopher Nav
 
 VS Code 扩展，提供与 GoLand 对等的 Go 代码导航体验。内置 Go 词法/语法解析器与项目级符号索引，**不依赖 gopls、Go 插件或 Go 工具链**即可完成：
 
@@ -54,7 +54,7 @@ npm run compile     # 或 npm run watch 持续编译
 ```
 
 1. 用 VS Code 打开本目录（扩展工程根目录）。
-2. 按 `F5`，选择 **Run Go Navigator Extension**。
+2. 按 `F5`，选择 **Run Gopher Nav Extension**。
 3. 会启动一个「扩展开发宿主」窗口，并自动打开 `demo/go-app`（由 `.vscode/launch.json` 的 `args` 指定）。
 4. 在宿主窗口打开任意 `.go` 文件，右下角状态栏出现 `✓ Go 导航: N 个文件` 即索引完成。
 
@@ -82,15 +82,15 @@ npm run compile     # 或 npm run watch 持续编译
 
 ## 3. 命令与配置
 
-### 命令（命令面板输入 `Go Navigator` 或 `goNavigator`）
+### 命令（命令面板输入 `Gopher Nav` 或 `goNavigator`）
 
 | 命令 | 说明 |
 | --- | --- |
-| `Go Navigator: 转到定义` | 优先使用内置索引跳转，失败时回退到 VS Code/gopls 的定义跳转 |
-| `Go Navigator: 查找所有实现` | 对光标所在接口、接口方法或实现方法列出实现/对应接口 |
-| `Go Navigator: 查看实现列表` | CodeLens 使用的内部命令（也可手动调用） |
-| `Go Navigator: 查看实现的接口` | 结构体/方法 → 接口列表 |
-| `Go Navigator: 重建 Go 索引` | 手动重建全量索引（状态栏同样可点击触发） |
+| `Gopher Nav: 转到定义` | 优先使用内置索引跳转，失败时回退到 VS Code/gopls 的定义跳转 |
+| `Gopher Nav: 查找所有实现` | 对光标所在接口、接口方法或实现方法列出实现/对应接口 |
+| `Gopher Nav: 查看实现列表` | CodeLens 使用的内部命令（也可手动调用） |
+| `Gopher Nav: 查看实现的接口` | 结构体/方法 → 接口列表 |
+| `Gopher Nav: 重建 Go 索引` | 手动重建全量索引（状态栏同样可点击触发） |
 
 右键菜单（仅 Go 文件）：`转到定义`、`查找所有实现`。
 

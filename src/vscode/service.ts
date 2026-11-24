@@ -92,7 +92,7 @@ export class GoIndexService implements vscode.Disposable {
     } catch (error) {
       this.setStatus('$(error) Go 索引失败', true);
       const message = error instanceof Error ? error.message : String(error);
-      vscode.window.showErrorMessage(`Go Navigator 索引失败: ${message}`);
+      vscode.window.showErrorMessage(`Gopher Nav 索引失败: ${message}`);
     } finally {
       this.reindexing = false;
       this.resolveReady();
@@ -113,10 +113,10 @@ export class GoIndexService implements vscode.Disposable {
       await this.loadModules();
       await this.buildIndex();
       this.setStatus(`$(check) Go 导航: ${this.index.size} 个文件`, true);
-      vscode.window.showInformationMessage(`Go Navigator: 索引完成，共 ${this.index.size} 个 Go 文件。`);
+      vscode.window.showInformationMessage(`Gopher Nav: 索引完成，共 ${this.index.size} 个 Go 文件。`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      vscode.window.showErrorMessage(`Go Navigator 重建索引失败: ${message}`);
+      vscode.window.showErrorMessage(`Gopher Nav 重建索引失败: ${message}`);
       this.setStatus('$(error) Go 索引失败', true);
     } finally {
       this.reindexing = false;
@@ -168,7 +168,7 @@ export class GoIndexService implements vscode.Disposable {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'Go Navigator 正在解析 Go 源文件',
+        title: 'Gopher Nav 正在解析 Go 源文件',
         cancellable: true
       },
       async (progress, token) => {

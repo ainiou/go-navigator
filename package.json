@@ -1,6 +1,6 @@
 {
-  "name": "go-navigator",
-  "displayName": "Go Navigator",
+  "name": "gopher-nav",
+  "displayName": "Gopher Nav",
   "description": "GoLand 风格的 Go 代码导航：接口定义跳转、接口实现查找、方法定义跳转（内置 Go 语法解析与索引）",
   "version": "1.0.0",
   "publisher": "eof",
@@ -51,27 +51,27 @@
       {
         "command": "goNavigator.goToDefinition",
         "title": "转到定义",
-        "category": "Go Navigator"
+        "category": "Gopher Nav"
       },
       {
         "command": "goNavigator.findAllImplementations",
         "title": "查找所有实现",
-        "category": "Go Navigator"
+        "category": "Gopher Nav"
       },
       {
         "command": "goNavigator.showImplementations",
         "title": "查看实现列表",
-        "category": "Go Navigator"
+        "category": "Gopher Nav"
       },
       {
         "command": "goNavigator.showInterfaces",
         "title": "查看实现的接口",
-        "category": "Go Navigator"
+        "category": "Gopher Nav"
       },
       {
         "command": "goNavigator.reindex",
         "title": "重建 Go 索引",
-        "category": "Go Navigator"
+        "category": "Gopher Nav"
       }
     ],
     "menus": {
@@ -89,7 +89,7 @@
       ]
     },
     "configuration": {
-      "title": "Go Navigator",
+      "title": "Gopher Nav",
       "properties": {
         "goNavigator.enableCodeLens": {
           "type": "boolean",
