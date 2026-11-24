@@ -6,3 +6,6 @@ video/
 *.mp4
 blog/
 bugs/
+.trae/
+.vscode/
+.idea/

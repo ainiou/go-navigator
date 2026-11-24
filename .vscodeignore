@@ -8,3 +8,4 @@ tsconfig.json
 **/*.map
 blog/
 bugs/
+.trae/**
