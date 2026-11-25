@@ -343,12 +343,16 @@ class Parser {
     const resultTypes: string[] = [];
     let resultText = '';
 
-    if (this.tokens[j]?.text === '(') {
+    // Go 的自动分号插入规则：参数列表 ')' 后若换行，签名即结束，
+    // 返回值必须与 ')' 同行；否则会把下一行的成员名误当成返回类型。
+    const nextTok = this.tokens[j];
+
+    if (nextTok?.text === '(' && !nextTok.nl) {
       const results = this.readParamList(j);
       resultTypes.push(...results.types);
       resultText = '(' + results.types.join(', ') + ')';
       j = results.end;
-    } else if (this.isTypeStart(this.tokens[j])) {
+    } else if (nextTok && !nextTok.nl && this.isTypeStart(nextTok)) {
       const result = this.readTypeExpr(j);
       resultTypes.push(result.text);
       resultText = ' ' + result.text;

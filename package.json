@@ -2,7 +2,7 @@
   "name": "gopher-nav",
   "displayName": "Gopher Nav",
   "description": "GoLand 风格的 Go 接口导航：接口实现查找、实现反查、接口/结构体/方法互跳（内置 Go 语法解析与索引；F12 定义跳转交由 gopls）",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "eof",
   "license": "MIT",
   "repository": {
