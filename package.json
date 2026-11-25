@@ -1,8 +1,8 @@
 {
   "name": "gopher-nav",
   "displayName": "Gopher Nav",
-  "description": "GoLand 风格的 Go 代码导航：接口定义跳转、接口实现查找、方法定义跳转（内置 Go 语法解析与索引）",
-  "version": "1.0.2",
+  "description": "GoLand 风格的 Go 接口导航：接口实现查找、实现反查、接口/结构体/方法互跳（内置 Go 语法解析与索引；F12 定义跳转交由 gopls）",
+  "version": "1.1.0",
   "publisher": "eof",
   "license": "MIT",
   "repository": {
@@ -53,11 +53,6 @@
     ],
     "commands": [
       {
-        "command": "goNavigator.goToDefinition",
-        "title": "转到定义",
-        "category": "Gopher Nav"
-      },
-      {
         "command": "goNavigator.findAllImplementations",
         "title": "查找所有实现",
         "category": "Gopher Nav"
@@ -80,11 +75,6 @@
     ],
     "menus": {
       "editor/context": [
-        {
-          "command": "goNavigator.goToDefinition",
-          "when": "editorLangId == go",
-          "group": "navigation@1"
-        },
         {
           "command": "goNavigator.findAllImplementations",
           "when": "editorLangId == go",

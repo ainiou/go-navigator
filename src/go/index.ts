@@ -126,6 +126,12 @@ interface MethodEntry {
   iface?: { name: string; nameStart: number; nameEnd: number };
 }
 
+interface FallbackCandidate {
+  location: SourceLocation;
+  signature: MethodSignature;
+  file: GoFileIndex;
+}
+
 export interface InterfaceInfo {
   file: GoFileIndex;
   decl: TypeDecl;
@@ -161,6 +167,18 @@ function normPath(p: string): string {
     s = s.toLowerCase();
   }
   return s;
+}
+
+/** 去掉指针/切片/可变参前缀，便于比较规范化后的类型键。 */
+function stripTypePrefix(text: string): string {
+  let value = text;
+  while (value.startsWith('*') || value.startsWith('[]')) {
+    value = value.startsWith('*') ? value.slice(1) : value.slice(2);
+  }
+  if (value.startsWith('...')) {
+    value = value.slice(3);
+  }
+  return value;
 }
 
 export class GoIndex {
@@ -858,7 +876,7 @@ export class GoIndex {
     const chain = call.receiverChain ?? [];
 
     if (chain.length === 0) {
-      return this.resolveFunctionName(file, call.name);
+      return this.resolveFunctionName(file, call);
     }
 
     // pkg.Func(...)
@@ -883,21 +901,30 @@ export class GoIndex {
       }
     }
 
-    // 回退：全局按名字匹配
-    const locations: SourceLocation[] = [];
+    return this.fallbackCallCandidates(file, call);
+  }
+
+  /**
+   * 类型推断失败时的兜底：先按实参个数过滤候选，再用可解析的实参类型与
+   * 候选参数类型做规范化比较，只保留匹配度最高的同名符号。
+   */
+  private fallbackCallCandidates(file: GoFileIndex, call: CallSite): SourceLocation[] {
+    const items: FallbackCandidate[] = [];
     const seen = new Set<string>();
-    const push = (loc: SourceLocation) => {
-      const key = normPath(loc.path) + ':' + loc.start;
-      if (!seen.has(key)) {
-        seen.add(key);
-        locations.push(loc);
+    const push = (location: SourceLocation, signature: MethodSignature, owner: GoFileIndex) => {
+      const key = normPath(location.path) + ':' + location.start;
+      if (seen.has(key)) {
+        return;
       }
+      seen.add(key);
+      items.push({ location, signature, file: owner });
     };
+
     for (const entry of this.methodsNamed(call.name)) {
-      push(this.funcLocation(entry.file, entry.decl));
+      push(this.funcLocation(entry.file, entry.decl), entry.decl.signature, entry.file);
     }
     for (const entry of this.functionsNamed(call.name)) {
-      push(this.funcLocation(entry.file, entry.decl));
+      push(this.funcLocation(entry.file, entry.decl), entry.decl.signature, entry.file);
     }
     for (const candidate of this.files.values()) {
       for (const iface of candidate.types) {
@@ -906,15 +933,112 @@ export class GoIndex {
         }
         for (const method of iface.interfaceMethods ?? []) {
           if (method.name === call.name) {
-            push({ path: candidate.path, start: method.nameStart, end: method.nameEnd });
+            push(
+              { path: candidate.path, start: method.nameStart, end: method.nameEnd },
+              method.signature,
+              candidate
+            );
           }
         }
       }
     }
-    return locations.slice(0, 30);
+    return this.rankCandidates(file, call, items).map(item => item.location).slice(0, 30);
   }
 
-  private resolveFunctionName(file: GoFileIndex, name: string): SourceLocation[] {
+  private rankCandidates(
+    file: GoFileIndex,
+    call: CallSite,
+    candidates: FallbackCandidate[]
+  ): FallbackCandidate[] {
+    if (!call.args || candidates.length === 0) {
+      return candidates;
+    }
+
+    const sameArity = candidates.filter(item => this.callArgsMatch(call, item.signature));
+    if (sameArity.length <= 1) {
+      return sameArity;
+    }
+
+    const scores = sameArity.map(item =>
+      this.signatureTypeScore(file, call, item.file, item.signature)
+    );
+    const best = Math.max(...scores);
+    if (best <= 0) {
+      return sameArity;
+    }
+    return sameArity.filter((_item, index) => scores[index] === best);
+  }
+
+  /** 实参个数是否与候选签名参数个数兼容（可变参放行）。 */
+  private callArgsMatch(call: CallSite, signature: MethodSignature): boolean {
+    if (!call.args) {
+      return true;
+    }
+    const count = call.args.length;
+    const params = signature.paramTypes.length;
+    if (signature.variadic) {
+      return count >= Math.max(0, params - 1);
+    }
+    return count === params;
+  }
+
+  /** 用可解析的实参类型与候选参数类型做规范化比较，返回匹配个数。 */
+  private signatureTypeScore(
+    file: GoFileIndex,
+    call: CallSite,
+    candidateFile: GoFileIndex,
+    signature: MethodSignature
+  ): number {
+    if (!call.args) {
+      return 0;
+    }
+    let score = 0;
+    const limit = Math.min(call.args.length, signature.paramTypes.length);
+    for (let i = 0; i < limit; i++) {
+      const argType = this.resolveArgumentType(file, call.locals, call.args[i]);
+      if (!argType) {
+        continue;
+      }
+      const argKey = stripTypePrefix(this.canonicalResolvedType(argType));
+      const paramKey = stripTypePrefix(this.canonicalType(candidateFile, signature.paramTypes[i]));
+      if (paramKey === argKey) {
+        score++;
+      }
+    }
+    return score;
+  }
+
+  /** 仅支持简单标识符（可带 & 取址）的实参类型解析。 */
+  private resolveArgumentType(
+    file: GoFileIndex,
+    locals: LocalVar[],
+    argText: string
+  ): ResolvedType | undefined {
+    const trimmed = argText.trim();
+    if (!/^&?[A-Za-z_][A-Za-z0-9_]*$/.test(trimmed)) {
+      return undefined;
+    }
+    const name = trimmed.replace(/^&/, '');
+    const local = locals.find(item => item.names.includes(name));
+    if (!local) {
+      return undefined;
+    }
+    if (local.typeText) {
+      return this.resolveTypeText(file, local.typeText);
+    }
+    if (local.ctorText) {
+      return this.resolveChainType(file, locals, local.ctorText.split('.'), local.ctorIndex ?? 0);
+    }
+    return undefined;
+  }
+
+  private canonicalResolvedType(resolved: ResolvedType): string {
+    const target = this.followAlias(resolved);
+    return '#' + this.dirKey(target.file.dir) + '.' + target.decl.name;
+  }
+
+  private resolveFunctionName(file: GoFileIndex, call: CallSite): SourceLocation[] {
+    const name = call.name;
     if (BUILTIN_FUNCS.has(name)) {
       return [];
     }
@@ -924,7 +1048,14 @@ export class GoIndex {
     }
     const all = this.functionsNamed(name);
     if (all.length > 0) {
-      return all.slice(0, 30).map(entry => this.funcLocation(entry.file, entry.decl));
+      const candidates: FallbackCandidate[] = all.map(entry => ({
+        location: this.funcLocation(entry.file, entry.decl),
+        signature: entry.decl.signature,
+        file: entry.file
+      }));
+      return this.rankCandidates(file, call, candidates)
+        .map(item => item.location)
+        .slice(0, 30);
     }
     // 类型转换 T(x)
     const typeTarget = this.resolveNamedType(file, name);

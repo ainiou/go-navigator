@@ -92,25 +92,6 @@ async function showSymbolNavigation(
 
 export function registerCommands(context: vscode.ExtensionContext, service: GoIndexService): void {
   context.subscriptions.push(
-    vscode.commands.registerCommand('goNavigator.goToDefinition', async () => {
-      const editor = vscode.window.activeTextEditor;
-      if (editor && editor.document.languageId === 'go') {
-        await service.whenReady();
-        const file = service.getFileForDocument(editor.document);
-        if (file) {
-          const locations = service.index.resolveDefinitionAt(
-            file,
-            editor.document.offsetAt(editor.selection.active)
-          );
-          if (locations.length > 0) {
-            await revealLocation(service, locations[0]);
-            return;
-          }
-        }
-      }
-      await vscode.commands.executeCommand('editor.action.revealDefinition');
-    }),
-
     vscode.commands.registerCommand('goNavigator.findAllImplementations', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor || editor.document.languageId !== 'go') {

@@ -84,6 +84,8 @@ export interface CallSite {
   end: number;
   /** s.repo.Find() -> ["s", "repo"]；pkg.Func() -> ["pkg"]。 */
   receiverChain?: string[];
+  /** 顶层实参文本（已去除空白），用于兜底时按签名过滤。 */
+  args?: string[];
   /** 所在函数/方法体内可见的局部变量（共享引用）。 */
   locals: LocalVar[];
 }

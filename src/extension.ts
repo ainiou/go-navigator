@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { registerCommands } from './commands';
 import { GoCodeLensProvider } from './vscode/codeLens';
-import { GoDefinitionProvider, GoImplementationProvider } from './vscode/providers';
+import { GoImplementationProvider } from './vscode/providers';
 import { GoIndexService } from './vscode/service';
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -17,7 +17,6 @@ export function activate(context: vscode.ExtensionContext): void {
   ];
 
   context.subscriptions.push(
-    vscode.languages.registerDefinitionProvider(selector, new GoDefinitionProvider(service)),
     vscode.languages.registerImplementationProvider(selector, new GoImplementationProvider(service)),
     vscode.languages.registerCodeLensProvider(selector, codeLensProvider),
     vscode.workspace.onDidChangeConfiguration(event => {

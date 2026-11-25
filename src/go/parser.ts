@@ -110,6 +110,43 @@ class Parser {
     return this.tokens.length - 1;
   }
 
+  /** 读取调用实参文本（按顶层逗号切分），用于兜底时的签名匹配。 */
+  private readCallArgs(openIdx: number): string[] {
+    const close = this.findMatching(openIdx);
+    const args: string[] = [];
+    if (close <= openIdx) {
+      return args;
+    }
+    let start = openIdx + 1;
+    let paren = 0;
+    let brace = 0;
+    let bracket = 0;
+    for (let j = openIdx + 1; j < close; j++) {
+      const text = this.tokens[j].text;
+      if (text === '(') {
+        paren++;
+      } else if (text === ')') {
+        paren--;
+      } else if (text === '{') {
+        brace++;
+      } else if (text === '}') {
+        brace--;
+      } else if (text === '[') {
+        bracket++;
+      } else if (text === ']') {
+        bracket--;
+      } else if (text === ',' && paren === 0 && brace === 0 && bracket === 0) {
+        args.push(this.textBetween(start, j));
+        start = j + 1;
+      }
+    }
+    const last = this.textBetween(start, close);
+    if (last.length > 0) {
+      args.push(last);
+    }
+    return args;
+  }
+
   private isTypeStart(tok: Token | undefined): boolean {
     if (!tok) {
       return false;
@@ -750,11 +787,18 @@ class Parser {
                 start: t.start,
                 end: t.end,
                 receiverChain: chain.slice(0, -1),
+                args: this.readCallArgs(i + 1),
                 locals
               });
             }
           } else if (prev?.text !== 'func') {
-            calls.push({ name: t.text, start: t.start, end: t.end, locals });
+            calls.push({
+              name: t.text,
+              start: t.start,
+              end: t.end,
+              args: this.readCallArgs(i + 1),
+              locals
+            });
           }
         }
 
